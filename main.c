@@ -12,6 +12,7 @@ typedef struct
 {
     vec3d p[3];
     int color;
+    float ApproxZ;
 }t_triangle;
 
 
@@ -104,12 +105,57 @@ int cmpfunc (void const * a, void const* b) {
     return z1 > z2;
 }
 
+int comparer(const void *a, const void *b) {
+    const t_triangle *elementA = (const t_triangle *)a;
+    const t_triangle *elementB = (const t_triangle *)b;
+
+    // Comparaison basée sur la clé flottante
+    if (elementA->ApproxZ < elementB->ApproxZ) return 1;
+    if (elementA->ApproxZ > elementB->ApproxZ) return -1;
+    return 0;
+}
+
+/*
+void swap(float Array[], int one, int two) {
+    float temp = Array[one];
+    Array[one] = Array[two];
+    Array[two] = temp;
+}
+
+int partition(float Array[], int left, int right) {
+    float pivot = Array[right];
+    int leftPointer = left - 1;
+    int rightPointer = right;
+    for (;;) {
+        while (Array[++leftPointer] > pivot) {
+        }
+        while (rightPointer > 0 && Array[--rightPointer] < pivot) {
+        }
+        if (leftPointer >= rightPointer) {
+            break;
+        } else {
+            swap(Array, leftPointer, rightPointer);
+        }
+    }
+    *//* move pivot to partition point *//*
+    swap(Array, leftPointer, right);
+    return leftPointer;
+}
+
+void Quicksort(float Array[], int left, int right) {
+    if (left < right) {
+        int PartitionPoint = partition(Array, left, right);
+        Quicksort(Array, left, PartitionPoint - 1);
+        Quicksort(Array, PartitionPoint + 1, right);
+    }
+}*/
+
 
 int main() {
     init();
 
     FILE *pf;
-    pf= fopen("../cube.obj","r");
+    pf= fopen("../sphere.obj","r");
     if(pf==NULL)
     {
         allegro_message("could not open obj");
@@ -254,6 +300,8 @@ int main() {
     matProj[3][2] = (-fFar * fNear) / (fFar - fNear);
     matProj[2][3] = 1.0f;
     matProj[3][3] = 0.0f;
+
+    float *tabApprox= malloc(sizeof (float)*nbTriangle);
 
 
     while(!key[KEY_ESC])
@@ -425,17 +473,10 @@ int main() {
                 triProjected.p[2].y *= 0.5f * (float) SCREEN_H;
                 triangleToRaster[i]=triProjected;
             }
-
-
+            triangleToRaster[i].ApproxZ=(triangleToRaster[i].p[0].z + triangleToRaster[i].p[1].z + triangleToRaster[i].p[2].z) / 3.0f;
         }
-        /*qsort(triangleToRaster,nbTriangle,sizeof (t_triangle ),cmpfunc);
-        *//*for(int i=0;i<nbTriangle;i++)
-        {
-            float z1 = (triangleToRaster[i].p[0].z + triangleToRaster[i].p[1].z + triangleToRaster[i].p[2].z) / 3.0f;
-            *//**//*printf("%f %f %f \n",triangleToRaster[i].p[0].z,triangleToRaster[i].p[1].z,triangleToRaster[i].p[2].z);*//**//*
-            printf("%f\n",z1);
-        }
-        printf("\n");*/
+
+        qsort(triangleToRaster, nbTriangle, sizeof(t_triangle), comparer);
 
 
         for(int j=0;j<nbTriangle;j++)
@@ -446,10 +487,10 @@ int main() {
                      (int)triangleToRaster[j].p[1].x, (int)triangleToRaster[j].p[1].y,
                      (int)triangleToRaster[j].p[2].x, (int)triangleToRaster[j].p[2].y,
                      (int)triangleToRaster[j].color);
-            /*for(int j=0;j<3;j++)
-            {
-                circlefill(buffer,triProjected.p[j].x,triProjected.p[j].y,2, makecol(255,255,255));
-            }*/
+
+            circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
+            circlefill(buffer,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y,2, makecol(255,255,255));
+            circlefill(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,2, makecol(255,255,255));
 
             line(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));
             line(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y, makecol(255,0,0));
