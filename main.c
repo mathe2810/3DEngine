@@ -15,8 +15,6 @@ typedef struct
     float ApproxZ;
 }t_triangle;
 
-
-
 void init()
 {
     allegro_init();
@@ -155,7 +153,7 @@ int main() {
     init();
 
     FILE *pf;
-    pf= fopen("../tree.obj","r");
+    pf= fopen("../skull.obj","r");
     if(pf==NULL)
     {
         allegro_message("could not open obj");
@@ -311,42 +309,42 @@ int main() {
 
         if(key [KEY_W])
         {
-            fTheta+=0.001f;
+            fTheta+=0.1f;
         }
         if(key [KEY_E])
         {
-            fPhi+=0.001f;
+            fPhi+=0.1f;
         }
 
         if(key [KEY_R])
         {
-            fAngleRad+=0.001f;
+            fAngleRad+=0.1f;
         }
 
 
         if(key[KEY_UP])
         {
-            dz+=0.01f;
+            dz+=1.0f;
         }
         if(key[KEY_DOWN])
         {
-            dz-=0.01f;
+            dz-=1.0f;
         }
         if(key[KEY_T])
         {
-            dx+=0.01f;
+            dx+=1.0f;
         }
         if(key[KEY_Y])
         {
-            dx-=0.01f;
+            dx-=1.0f;
         }
         if(key[KEY_U])
         {
-            dy+=0.01f;
+            dy+=1.0f;
         }
         if(key[KEY_I])
         {
-            dy-=0.01f;
+            dy-=0.1f;
         }
         // Rotation Z
         matRotZ[0][0] = cosf(fTheta);
