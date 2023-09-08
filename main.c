@@ -21,7 +21,7 @@ void init()
 {
     allegro_init();
     set_color_depth(desktop_color_depth());
-    if(set_gfx_mode(GFX_AUTODETECT_WINDOWED,800,600,0,0)!=0)
+    if(set_gfx_mode(GFX_AUTODETECT_FULLSCREEN,1920,1080,0,0)!=0)
     {
         allegro_message("prblm gfx");
         allegro_exit();
@@ -155,7 +155,7 @@ int main() {
     init();
 
     FILE *pf;
-    pf= fopen("../sphere.obj","r");
+    pf= fopen("../tree.obj","r");
     if(pf==NULL)
     {
         allegro_message("could not open obj");
@@ -197,10 +197,10 @@ int main() {
     {
         for(int j=0;j<3;j++)
         {
-            tab[i][j]=0;
-            printf("%d",tab[i][j]);
-        }
-        printf("\n");
+            tab[i][j]=0;/*
+            printf("%d",tab[i][j]);*/
+        }/*
+        printf("\n");*/
 
     }
 
@@ -229,7 +229,7 @@ int main() {
 
     for(int i=0;i<nbTriangle;i++)
     {
-        printf("%f %f %f\n",verts[tab[i][2]-1].x,verts[tab[i][2]-1].y,verts[tab[i][2]-1].z);
+        /*printf("%f %f %f\n",verts[tab[i][2]-1].x,verts[tab[i][2]-1].y,verts[tab[i][2]-1].z);*/
         tris[i].p[0]=verts[tab[i][0]-1];
         tris[i].p[1]=verts[tab[i][1]-1];
         tris[i].p[2]=verts[tab[i][2]-1];
@@ -243,17 +243,17 @@ int main() {
     tris[indiceTris].p[1]=verts[f[1]-1];
     tris[indiceTris].p[2]=verts[f[2]-1];*/
 
-    for(int i=0;i<nbTriangle;i++)
+    /*for(int i=0;i<nbTriangle;i++)
     {
         printf("%f %f %f %f %f %f %f %f %f\n",tris[i].p[0].x,tris[i].p[0].y,tris[i].p[0].z,tris[i].p[1].x,tris[i].p[2].y,tris[i].p[2].z,tris[i].p[2].x,tris[i].p[2].y,tris[i].p[2].z);
-    }
+    }*/
 
 
     t_triangle *triangleToRaster= malloc(sizeof (t_triangle)*nbTriangle);
 
 
     float fTheta=0,fPhi=0,fAngleRad=0;
-    float dx=0,dy=0,dz=3;
+    float dx=0,dy=0,dz=20;
     float fNear = 0.1f;
     float fFar = 1000.0f;
     float fFov = 90.0f;
@@ -488,13 +488,13 @@ int main() {
                      (int)triangleToRaster[j].p[2].x, (int)triangleToRaster[j].p[2].y,
                      (int)triangleToRaster[j].color);
 
-            circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
+            /*circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
             circlefill(buffer,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y,2, makecol(255,255,255));
             circlefill(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,2, makecol(255,255,255));
 
             line(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));
             line(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y, makecol(255,0,0));
-            line(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));
+            line(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));*/
         }
 
         blit(buffer,screen,0,0,0,0,SCREEN_W,SCREEN_H);
