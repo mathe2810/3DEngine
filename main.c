@@ -93,7 +93,7 @@ int GetColour(float lum)
     }
 }
 
-int cmpfunc (void const * a, void const* b) {
+/*int cmpfunc (void const * a, void const* b) {
 
     t_triangle *t1=(t_triangle*)a;
     t_triangle *t2=(t_triangle*)b;
@@ -101,7 +101,7 @@ int cmpfunc (void const * a, void const* b) {
     float z1 = (t1->p[0].z + t1->p[1].z + t1->p[2].z) / 3.0f;
     float z2 = (t2->p[0].z + t2->p[1].z + t2->p[2].z) / 3.0f;
     return z1 > z2;
-}
+}*/
 
 int comparer(const void *a, const void *b) {
     const t_triangle *elementA = (const t_triangle *)a;
@@ -153,7 +153,7 @@ int main() {
     init();
 
     FILE *pf;
-    pf= fopen("../skull.obj","r");
+    pf= fopen("../sphere.obj","r");
     if(pf==NULL)
     {
         allegro_message("could not open obj");
@@ -184,7 +184,7 @@ int main() {
 
     vec3d *verts=malloc(sizeof (vec3d)*nbVertices);
     t_triangle *tris=malloc(sizeof (t_triangle)*nbTriangle);
-    int **tab=malloc(sizeof (int)*nbTriangle);
+    int **tab=malloc(sizeof (int*)*nbTriangle);
 
     for(int i=0; i<nbTriangle;i++)
     {
@@ -309,16 +309,16 @@ int main() {
 
         if(key [KEY_W])
         {
-            fTheta+=0.1f;
+            fTheta+=0.001f;
         }
         if(key [KEY_E])
         {
-            fPhi+=0.1f;
+            fPhi+=0.001f;
         }
 
         if(key [KEY_R])
         {
-            fAngleRad+=0.1f;
+            fAngleRad+=0.001f;
         }
 
 
