@@ -153,7 +153,7 @@ int main() {
     init();
 
     FILE *pf;
-    pf= fopen("../sphere.obj","r");
+    pf= fopen("../mapTest.obj","r");
     if(pf==NULL)
     {
         allegro_message("could not open obj");
@@ -251,7 +251,7 @@ int main() {
 
 
     float fTheta=0,fPhi=0,fAngleRad=0;
-    float dx=0,dy=0,dz=20;
+    float dx=0,dy=0,dz=100;
     float fNear = 0.1f;
     float fFar = 1000.0f;
     float fFov = 90.0f;
@@ -309,16 +309,16 @@ int main() {
 
         if(key [KEY_W])
         {
-            fTheta+=0.001f;
+            fTheta+=0.1f;
         }
         if(key [KEY_E])
         {
-            fPhi+=0.001f;
+            fPhi+=0.1f;
         }
 
         if(key [KEY_R])
         {
-            fAngleRad+=0.001f;
+            fAngleRad+=0.1f;
         }
 
 
