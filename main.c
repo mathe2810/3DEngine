@@ -153,7 +153,7 @@ int main() {
     init();
 
     FILE *pf;
-    pf= fopen("../mapTest.obj","r");
+    pf= fopen("../sphere.obj","r");
     if(pf==NULL)
     {
         allegro_message("could not open obj");
