@@ -178,43 +178,6 @@ mat4x4 matrix={0};
 return matrix;
 }
 
-/*mat4x4 Matrix_PointAt(vec3d *pos, vec3d *target, vec3d *up)
-{
-// Calculate new forward direction
-vec3d newForward = Vector_Sub(target, pos);
-newForward = Vector_Normalise(newForward);
-
-// Calculate new Up direction
-vec3d a = Vector_Mul(newForward, Vector_DotProduct(up, newForward));
-vec3d newUp = Vector_Sub(up, a);
-newUp = Vector_Normalise(newUp);
-
-// New Right direction is easy, its just cross product
-vec3d newRight = Vector_CrossProduct(newUp, newForward);
-
-// Construct Dimensioning and Translation Matrix
-mat4x4 matrix;
-matrix.m[0][0] = newRight.x;	matrix.m[0][1] = newRight.y;	matrix.m[0][2] = newRight.z;	matrix.m[0][3] = 0.0f;
-matrix.m[1][0] = newUp.x;		matrix.m[1][1] = newUp.y;		matrix.m[1][2] = newUp.z;		matrix.m[1][3] = 0.0f;
-matrix.m[2][0] = newForward.x;	matrix.m[2][1] = newForward.y;	matrix.m[2][2] = newForward.z;	matrix.m[2][3] = 0.0f;
-matrix.m[3][0] = pos.x;			matrix.m[3][1] = pos.y;			matrix.m[3][2] = pos.z;			matrix.m[3][3] = 1.0f;
-return matrix;
-
-}*/
-
-mat4x4 Matrix_QuickInverse(mat4x4 *m) // Only for Rotation/Translation Matrices
-{
-mat4x4 matrix={0};
-matrix.m[0][0] = m->m[0][0]; matrix.m[0][1] = m->m[1][0]; matrix.m[0][2] = m->m[2][0]; matrix.m[0][3] = 0.0f;
-matrix.m[1][0] = m->m[0][1]; matrix.m[1][1] = m->m[1][1]; matrix.m[1][2] = m->m[2][1]; matrix.m[1][3] = 0.0f;
-matrix.m[2][0] = m->m[0][2]; matrix.m[2][1] = m->m[1][2]; matrix.m[2][2] = m->m[2][2]; matrix.m[2][3] = 0.0f;
-matrix.m[3][0] = -(m->m[3][0] * matrix.m[0][0] + m->m[3][1] * matrix.m[1][0] + m->m[3][2] * matrix.m[2][0]);
-matrix.m[3][1] = -(m->m[3][0] * matrix.m[0][1] + m->m[3][1] * matrix.m[1][1] + m->m[3][2] * matrix.m[2][1]);
-matrix.m[3][2] = -(m->m[3][0] * matrix.m[0][2] + m->m[3][1] * matrix.m[1][2] + m->m[3][2] * matrix.m[2][2]);
-matrix.m[3][3] = 1.0f;
-return matrix;
-}
-
 vec3d Vector_Add(vec3d *v1, vec3d *v2)
 {
     vec3d vToReturn=initVector();
@@ -280,6 +243,45 @@ vec3d Vector_CrossProduct(vec3d *v1, vec3d *v2)
 return v;
 }
 
+mat4x4 Matrix_PointAt(vec3d *pos, vec3d *target, vec3d *up)
+{
+    // Calculate new forward direction
+    vec3d newForward=initVector();
+    newForward = Vector_Sub(target, pos);
+    newForward = Vector_Normalise(&newForward);
+
+// Calculate new Up direction
+    vec3d a = Vector_Mul(&newForward, Vector_DotProduct(up, &newForward));
+    vec3d newUp = Vector_Sub(up, &a);
+    newUp = Vector_Normalise(&newUp);
+
+// New Right direction is easy, its just cross product
+    vec3d newRight = Vector_CrossProduct(&newUp, &newForward);
+
+// Construct Dimensioning and Translation Matrix
+    mat4x4 matrix={0};
+    matrix.m[0][0] = newRight.x;	matrix.m[0][1] = newRight.y;	matrix.m[0][2] = newRight.z;	matrix.m[0][3] = 0.0f;
+    matrix.m[1][0] = newUp.x;		matrix.m[1][1] = newUp.y;		matrix.m[1][2] = newUp.z;		matrix.m[1][3] = 0.0f;
+    matrix.m[2][0] = newForward.x;	matrix.m[2][1] = newForward.y;	matrix.m[2][2] = newForward.z;	matrix.m[2][3] = 0.0f;
+    matrix.m[3][0] = pos->x;			matrix.m[3][1] = pos->y;			matrix.m[3][2] = pos->z;			matrix.m[3][3] = 1.0f;
+    return matrix;
+
+}
+
+
+mat4x4 Matrix_QuickInverse(mat4x4 *m) // Only for Rotation/Translation Matrices
+{
+mat4x4 matrix={0};
+matrix.m[0][0] = m->m[0][0]; matrix.m[0][1] = m->m[1][0]; matrix.m[0][2] = m->m[2][0]; matrix.m[0][3] = 0.0f;
+matrix.m[1][0] = m->m[0][1]; matrix.m[1][1] = m->m[1][1]; matrix.m[1][2] = m->m[2][1]; matrix.m[1][3] = 0.0f;
+matrix.m[2][0] = m->m[0][2]; matrix.m[2][1] = m->m[1][2]; matrix.m[2][2] = m->m[2][2]; matrix.m[2][3] = 0.0f;
+matrix.m[3][0] = -(m->m[3][0] * matrix.m[0][0] + m->m[3][1] * matrix.m[1][0] + m->m[3][2] * matrix.m[2][0]);
+matrix.m[3][1] = -(m->m[3][0] * matrix.m[0][1] + m->m[3][1] * matrix.m[1][1] + m->m[3][2] * matrix.m[2][1]);
+matrix.m[3][2] = -(m->m[3][0] * matrix.m[0][2] + m->m[3][1] * matrix.m[1][2] + m->m[3][2] * matrix.m[2][2]);
+matrix.m[3][3] = 1.0f;
+return matrix;
+}
+
 int GetColour(float lum)
 {
     int pixel_bw = (int)(13.0f*lum);
@@ -306,16 +308,6 @@ int GetColour(float lum)
     }
 }
 
-/*int cmpfunc (void const * a, void const* b) {
-
-    t_triangle *t1=(t_triangle*)a;
-    t_triangle *t2=(t_triangle*)b;
-
-    float z1 = (t1->p[0].z + t1->p[1].z + t1->p[2].z) / 3.0f;
-    float z2 = (t2->p[0].z + t2->p[1].z + t2->p[2].z) / 3.0f;
-    return z1 > z2;
-}*/
-
 int comparer(const void *a, const void *b) {
     const t_triangle *elementA = (const t_triangle *)a;
     const t_triangle *elementB = (const t_triangle *)b;
@@ -325,41 +317,6 @@ int comparer(const void *a, const void *b) {
     if (elementA->ApproxZ > elementB->ApproxZ) return -1;
     return 0;
 }
-
-/*
-void swap(float Array[], int one, int two) {
-    float temp = Array[one];
-    Array[one] = Array[two];
-    Array[two] = temp;
-}
-
-int partition(float Array[], int left, int right) {
-    float pivot = Array[right];
-    int leftPointer = left - 1;
-    int rightPointer = right;
-    for (;;) {
-        while (Array[++leftPointer] > pivot) {
-        }
-        while (rightPointer > 0 && Array[--rightPointer] < pivot) {
-        }
-        if (leftPointer >= rightPointer) {
-            break;
-        } else {
-            swap(Array, leftPointer, rightPointer);
-        }
-    }
-    *//* move pivot to partition point *//*
-    swap(Array, leftPointer, right);
-    return leftPointer;
-}
-
-void Quicksort(float Array[], int left, int right) {
-    if (left < right) {
-        int PartitionPoint = partition(Array, left, right);
-        Quicksort(Array, left, PartitionPoint - 1);
-        Quicksort(Array, PartitionPoint + 1, right);
-    }
-}*/
 
 int myClock(int diffAfterReset)
 {
@@ -469,7 +426,7 @@ int main() {
     mat4x4 matProj={0},matRotZ={0},matRotX={0},matRotY={0},matTrans={0},matWorld={0},matRotated={0};
     t_triangle triProjected, triTransformed;
 
-    vec3d vCamera={0};
+    vec3d vCamera={0},vLookDir={0};
 
     BITMAP *buffer= create_bitmap(SCREEN_W,SCREEN_H);
 
@@ -486,42 +443,42 @@ int main() {
 
         if(key [KEY_W])
         {
-            fTheta+=0.01f;
+            fTheta+=10/fps;
         }
         if(key [KEY_E])
         {
-            fPhi+=0.01f;
+            fPhi+=10/fps;
         }
 
         if(key [KEY_R])
         {
-            fAngleRad+=0.01f;
+            fAngleRad+=10/fps;
         }
 
 
         if(key[KEY_UP])
         {
-            dz+=0.5f;
+            dz+=100/fps;
         }
         if(key[KEY_DOWN])
         {
-            dz-=0.5f;
+            dz-=100/fps;
         }
         if(key[KEY_T])
         {
-            dx+=0.5f;
+            dx+=100/fps;
         }
         if(key[KEY_Y])
         {
-            dx-=0.5f;
+            dx-=100/fps;
         }
         if(key[KEY_U])
         {
-            dy+=0.5f;
+            dy+=100/fps;
         }
         if(key[KEY_I])
         {
-            dy-=0.5f;
+            dy-=100/fps;
         }
         matRotZ= Matrix_MakeRotationZ(fTheta);
         matRotX= Matrix_MakeRotationX(fPhi);
@@ -535,6 +492,8 @@ int main() {
         matWorld=Matrix_MultiplyMatrix(&matWorld,&matRotated);
         matWorld= Matrix_MultiplyMatrix(&matWorld,&matTrans);
 
+
+        vec3d vUp={0,1,0};
 
         for (int i=0;i<nbTriangle;i++)
         {
@@ -626,7 +585,7 @@ int main() {
                      (int)triangleToRaster[j].p[2].x, (int)triangleToRaster[j].p[2].y,
                      (int)triangleToRaster[j].color);
 
-           /* circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
+          /*  circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
             circlefill(buffer,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y,2, makecol(255,255,255));
             circlefill(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,2, makecol(255,255,255));
 
@@ -639,9 +598,9 @@ int main() {
         tempsFinOperation=clock();
         if((tempsFinOperation-tempsDebutOperation)!=0)
         {
-           fps=(tempsFinOperation-tempsDebutOperation);
+           fps=(double)1000/(tempsFinOperation-tempsDebutOperation);
         }
-        textprintf_ex(buffer,font,100,100, makecol(255,0,0),-1,"%Lf %s",(long double)(1000/fps),"fps");
+        textprintf_ex(buffer,font,100,100, makecol(255,0,0),-1,"%Lf %s",(long double)(fps),"fps");
         blit(buffer,screen,0,0,0,0,SCREEN_W,SCREEN_H);
 
 
