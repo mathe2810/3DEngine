@@ -59,12 +59,34 @@ BITMAP * importeImage(char *nomDeFichier)
     return imageARendre;
 }
 
-void MultiplyMatrixVector(vec3d *i, vec3d *o, float m[4][4])
+vec3d initVector()
 {
-    o->x = i->x * m[0][0] + i->y * m[1][0] + i->z * m[2][0] + m[3][0];
-    o->y = i->x * m[0][1] + i->y * m[1][1] + i->z * m[2][1] + m[3][1];
-    o->z = i->x * m[0][2] + i->y * m[1][2] + i->z * m[2][2] + m[3][2];
-    float w = i->x * m[0][3] + i->y * m[1][3] + i->z * m[2][3] + m[3][3];
+    vec3d toReturn;
+    toReturn.x=0;
+    toReturn.y=0;
+    toReturn.z=0;
+    toReturn.w=1;
+    return toReturn;
+}
+
+
+vec3d Matrix_MultiplyVector(mat4x4 *m, vec3d *i)
+{
+vec3d v=initVector();
+v.x = i->x * m->m[0][0] + i->y * m->m[1][0] + i->z * m->m[2][0] + i->w * m->m[3][0];
+v.y = i->x * m->m[0][1] + i->y * m->m[1][1] + i->z * m->m[2][1] + i->w * m->m[3][1];
+v.z = i->x * m->m[0][2] + i->y * m->m[1][2] + i->z * m->m[2][2] + i->w * m->m[3][2];
+v.w = i->x * m->m[0][3] + i->y * m->m[1][3] + i->z * m->m[2][3] + i->w * m->m[3][3];
+return v;
+}
+
+
+void MultiplyMatrixVector(vec3d *i, vec3d *o, mat4x4 m)
+{
+    o->x = i->x * m.m[0][0] + i->y * m.m[1][0] + i->z * m.m[2][0] + m.m[3][0];
+    o->y = i->x * m.m[0][1] + i->y * m.m[1][1] + i->z * m.m[2][1] + m.m[3][1];
+    o->z = i->x * m.m[0][2] + i->y * m.m[1][2] + i->z * m.m[2][2] + m.m[3][2];
+    float w = i->x * m.m[0][3] + i->y * m.m[1][3] + i->z * m.m[2][3] + m.m[3][3];
 
     if (w != 0.0f)
     {
@@ -74,7 +96,7 @@ void MultiplyMatrixVector(vec3d *i, vec3d *o, float m[4][4])
 
 mat4x4 Matrix_MakeIdentity()
 {
-    mat4x4 matrix;
+    mat4x4 matrix={0};
     matrix.m[0][0] = 1.0f;
     matrix.m[1][1] = 1.0f;
     matrix.m[2][2] = 1.0f;
@@ -84,7 +106,7 @@ mat4x4 Matrix_MakeIdentity()
 
 mat4x4 Matrix_MakeRotationX(float fAngleRad)
 {
-    mat4x4 matrix;
+    mat4x4 matrix={0};
     matrix.m[0][0] = 1.0f;
     matrix.m[1][1] = cosf(fAngleRad);
     matrix.m[1][2] = sinf(fAngleRad);
@@ -96,7 +118,7 @@ mat4x4 Matrix_MakeRotationX(float fAngleRad)
 
 mat4x4 Matrix_MakeRotationY(float fAngleRad)
 {
-    mat4x4 matrix;
+    mat4x4 matrix={0};
     matrix.m[0][0] = cosf(fAngleRad);
     matrix.m[0][2] = sinf(fAngleRad);
     matrix.m[2][0] = -sinf(fAngleRad);
@@ -108,7 +130,7 @@ mat4x4 Matrix_MakeRotationY(float fAngleRad)
 
 mat4x4 Matrix_MakeRotationZ(float fAngleRad)
 {
-    mat4x4 matrix;
+    mat4x4 matrix={0};
     matrix.m[0][0] = cosf(fAngleRad);
     matrix.m[0][1] = sinf(fAngleRad);
     matrix.m[1][0] = -sinf(fAngleRad);
@@ -120,7 +142,7 @@ mat4x4 Matrix_MakeRotationZ(float fAngleRad)
 
 mat4x4 Matrix_MakeTranslation(float x, float y, float z)
 {
-    mat4x4 matrix;
+    mat4x4 matrix={0};
     matrix.m[0][0] = 1.0f;
     matrix.m[1][1] = 1.0f;
     matrix.m[2][2] = 1.0f;
@@ -134,7 +156,7 @@ mat4x4 Matrix_MakeTranslation(float x, float y, float z)
 mat4x4 Matrix_MakeProjection(float fFovDegrees, float fAspectRatio, float fNear, float fFar)
 {
     float fFovRad = 1.0f / tanf(fFovDegrees * 0.5f / 180.0f * 3.14159f);
-    mat4x4 matrix;
+    mat4x4 matrix={0};
     matrix.m[0][0] = fAspectRatio * fFovRad;
     matrix.m[1][1] = fFovRad;
     matrix.m[2][2] = fFar / (fFar - fNear);
@@ -146,7 +168,7 @@ mat4x4 Matrix_MakeProjection(float fFovDegrees, float fAspectRatio, float fNear,
 
 mat4x4 Matrix_MultiplyMatrix(mat4x4 *m1, mat4x4 *m2)
 {
-mat4x4 matrix;
+mat4x4 matrix={0};
     for (int c = 0; c < 4; c++)
     {
         for (int r = 0; r < 4; r++){
@@ -182,7 +204,7 @@ return matrix;
 
 mat4x4 Matrix_QuickInverse(mat4x4 *m) // Only for Rotation/Translation Matrices
 {
-mat4x4 matrix;
+mat4x4 matrix={0};
 matrix.m[0][0] = m->m[0][0]; matrix.m[0][1] = m->m[1][0]; matrix.m[0][2] = m->m[2][0]; matrix.m[0][3] = 0.0f;
 matrix.m[1][0] = m->m[0][1]; matrix.m[1][1] = m->m[1][1]; matrix.m[1][2] = m->m[2][1]; matrix.m[1][3] = 0.0f;
 matrix.m[2][0] = m->m[0][2]; matrix.m[2][1] = m->m[1][2]; matrix.m[2][2] = m->m[2][2]; matrix.m[2][3] = 0.0f;
@@ -195,7 +217,7 @@ return matrix;
 
 vec3d Vector_Add(vec3d *v1, vec3d *v2)
 {
-    vec3d vToReturn;
+    vec3d vToReturn=initVector();
     vToReturn.x = v1->x + v2->x;
     vToReturn.y = v1->y + v2->y;
     vToReturn.z = v1->z + v2->z;
@@ -204,7 +226,7 @@ return vToReturn;
 
 vec3d Vector_Sub(vec3d *v1, vec3d *v2)
 {
-    vec3d vToReturn;
+    vec3d vToReturn=initVector();
     vToReturn.x = v1->x - v2->x;
     vToReturn.y = v1->y - v2->y;
     vToReturn.z = v1->z - v2->z;
@@ -213,7 +235,7 @@ return vToReturn;
 
 vec3d Vector_Mul(vec3d *v1, float k)
 {
-    vec3d vToReturn;
+    vec3d vToReturn=initVector();
     vToReturn.x = v1->x * k;
     vToReturn.y = v1->y * k;
     vToReturn.z = v1->z * k;
@@ -222,7 +244,7 @@ vec3d Vector_Mul(vec3d *v1, float k)
 
 vec3d Vector_Div(vec3d *v1, float k)
 {
-    vec3d vToReturn;
+    vec3d vToReturn=initVector();
     vToReturn.x = v1->x / k;
     vToReturn.y = v1->y / k;
     vToReturn.z = v1->z / k;
@@ -242,7 +264,7 @@ float Vector_Length(vec3d *v)
 vec3d Vector_Normalise(vec3d *v)
 {
     float l = Vector_Length(v);
-    vec3d vToReturn;
+    vec3d vToReturn=initVector();
     vToReturn.x = v->x / l;
     vToReturn.y = v->y / l;
     vToReturn.z = v->z / l;
@@ -251,7 +273,7 @@ vec3d Vector_Normalise(vec3d *v)
 
 vec3d Vector_CrossProduct(vec3d *v1, vec3d *v2)
 {
-    vec3d v;
+    vec3d v=initVector();
     v.x = v1->y * v2->z - v1->z * v2->y;
     v.y = v1->z * v2->x - v1->x * v2->z;
     v.z = v1->x * v2->y - v1->y * v2->x;
@@ -339,12 +361,24 @@ void Quicksort(float Array[], int left, int right) {
     }
 }*/
 
+int myClock(int diffAfterReset)
+{
+    return clock() - diffAfterReset; // Retourne le temps depuis le dernier reset
+}
+
+void myResetClock( int * diffAfterReset)
+{
+    *diffAfterReset = clock(); // Met le compteur au véritable temps
+}
+
 
 int main() {
     init();
 
+    clock_t tempsDebutOperation,tempsFinOperation;
+
     FILE *pf;
-    pf= fopen("../axes.obj","r");
+    pf= fopen("../teapot.obj","r");
     if(pf==NULL)
     {
         allegro_message("could not open obj");
@@ -355,6 +389,7 @@ int main() {
     int nbVertices=0,nbTriangle=0;
     char junk;
     char lineLecture[100];
+    long double fps;
 
     while(fgets(lineLecture,100,pf)!= NULL)
     {
@@ -386,16 +421,13 @@ int main() {
     {
         for(int j=0;j<3;j++)
         {
-            tab[i][j]=0;/*
-            printf("%d",tab[i][j]);*/
-        }/*
-        printf("\n");*/
+            tab[i][j]=0;
+        }
 
     }
 
     int indiceVerts=0,indiceTab=0;
 
-    /*printf("%s",lecture);*/
     while(fgets(lineLecture,100,pf)!= NULL){
         if(lineLecture[0]=='v')
         {
@@ -418,24 +450,13 @@ int main() {
 
     for(int i=0;i<nbTriangle;i++)
     {
-        /*printf("%f %f %f\n",verts[tab[i][2]-1].x,verts[tab[i][2]-1].y,verts[tab[i][2]-1].z);*/
         tris[i].p[0]=verts[tab[i][0]-1];
+        tris[i].p[0].w=1;
         tris[i].p[1]=verts[tab[i][1]-1];
+        tris[i].p[1].w=1;
         tris[i].p[2]=verts[tab[i][2]-1];
+        tris[i].p[2].w=1;
     }
-    /*for(int i=0;i<8;i++)
-    {
-        printf("%f %f %f\n",verts[i].x,verts[i].y,verts[i].z);
-    }*/
-/*
-    tris[indiceTris].p[0]=verts[f[0]-1];
-    tris[indiceTris].p[1]=verts[f[1]-1];
-    tris[indiceTris].p[2]=verts[f[2]-1];*/
-
-    /*for(int i=0;i<nbTriangle;i++)
-    {
-        printf("%f %f %f %f %f %f %f %f %f\n",tris[i].p[0].x,tris[i].p[0].y,tris[i].p[0].z,tris[i].p[1].x,tris[i].p[2].y,tris[i].p[2].z,tris[i].p[2].x,tris[i].p[2].y,tris[i].p[2].z);
-    }*/
 
 
     t_triangle *triangleToRaster= malloc(sizeof (t_triangle)*nbTriangle);
@@ -443,58 +464,23 @@ int main() {
 
     float fTheta=M_PI,fPhi=0,fAngleRad=0;
     float dx=0,dy=0,dz=100;
-    float fNear = 0.1f;
-    float fFar = 1000.0f;
     float fFov = 90.0f;
-    float fAspectRatio = (float)SCREEN_H / (float)SCREEN_W;
-    float fFovRad = 1.0f / tanf(fFov * 0.5f / 180.0f * 3.14159f);
 
-    float matProj[4][4]={0},matRotZ[4][4]={0},matRotX[4][4]={0},matRotY[4][4]={0};
-    t_triangle triProjected, triTranslated, triRotatedZ, triRotatedZX,triRotatedZXY;
+    mat4x4 matProj={0},matRotZ={0},matRotX={0},matRotY={0},matTrans={0},matWorld={0},matRotated={0};
+    t_triangle triProjected, triTransformed;
 
     vec3d vCamera={0};
 
     BITMAP *buffer= create_bitmap(SCREEN_W,SCREEN_H);
 
-    /*t_triangle cube[]=
-            {
-                    // SOUTH
-                    { 0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 0.0f },
-                    { 0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f },
-                    // EAST
-                    { 1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f },
-                    { 1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f },
-
-                    // NORTH
-                    { 1.0f, 0.0f, 1.0f,    1.0f, 1.0f, 1.0f,    0.0f, 1.0f, 1.0f },
-                    { 1.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 0.0f, 1.0f },
-
-                    // WEST
-                    { 0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 1.0f, 0.0f },
-                    { 0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 0.0f,    0.0f, 0.0f, 0.0f },
-
-                    // TOP
-                    { 0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 1.0f,    1.0f, 1.0f, 1.0f },
-                    { 0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f },
-
-                    // BOTTOM
-                    { 1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f },
-                    { 1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f },
-
-            };*/
-
-    matProj[0][0] = fAspectRatio * fFovRad;
-    matProj[1][1] = fFovRad;
-    matProj[2][2] = fFar / (fFar - fNear);
-    matProj[3][2] = (-fFar * fNear) / (fFar - fNear);
-    matProj[2][3] = 1.0f;
-    matProj[3][3] = 0.0f;
+    matProj= Matrix_MakeProjection(90,(float)SCREEN_H / (float)SCREEN_W,0.1f,1000.0f);
 
     float *tabApprox= malloc(sizeof (float)*nbTriangle);
 
 
     while(!key[KEY_ESC])
     {
+        tempsDebutOperation=clock();
         clear_bitmap(buffer);
 
 
@@ -515,50 +501,40 @@ int main() {
 
         if(key[KEY_UP])
         {
-            dz+=1.0f;
+            dz+=0.5f;
         }
         if(key[KEY_DOWN])
         {
-            dz-=1.0f;
+            dz-=0.5f;
         }
         if(key[KEY_T])
         {
-            dx+=1.0f;
+            dx+=0.5f;
         }
         if(key[KEY_Y])
         {
-            dx-=1.0f;
+            dx-=0.5f;
         }
         if(key[KEY_U])
         {
-            dy+=1.0f;
+            dy+=0.5f;
         }
         if(key[KEY_I])
         {
-            dy-=0.1f;
+            dy-=0.5f;
         }
-        // Rotation Z
-        matRotZ[0][0] = cosf(fTheta);
-        matRotZ[0][1] = sinf(fTheta);
-        matRotZ[1][0] = -sinf(fTheta);
-        matRotZ[1][1] = cosf(fTheta);
-        matRotZ[2][2] = 1;
-        matRotZ[3][3] = 1;
+        matRotZ= Matrix_MakeRotationZ(fTheta);
+        matRotX= Matrix_MakeRotationX(fPhi);
+        matRotY= Matrix_MakeRotationY(fAngleRad);
 
-        // Rotation X
-        matRotX[0][0] = 1;
-        matRotX[1][1] = cosf(fPhi);
-        matRotX[1][2] = sinf(fPhi);
-        matRotX[2][1] = -sinf(fPhi);
-        matRotX[2][2] = cosf(fPhi);
-        matRotX[3][3] = 1;
+        matTrans= Matrix_MakeTranslation(dx,dy,dz);
 
-        matRotY[0][0] = cosf(fAngleRad);
-        matRotY[0][2] = sinf(fAngleRad);
-        matRotY[2][0] = -sinf(fAngleRad);
-        matRotY[1][1] = 1.0f;
-        matRotY[2][2] = cosf(fAngleRad);
-        matRotY[3][3] = 1.0f;
+        matWorld= Matrix_MakeIdentity();
+        matRotated=Matrix_MultiplyMatrix(&matRotZ,&matRotX);
+        matRotated=Matrix_MultiplyMatrix(&matRotated,&matRotY);
+        matWorld=Matrix_MultiplyMatrix(&matWorld,&matRotated);
+        matWorld= Matrix_MultiplyMatrix(&matWorld,&matTrans);
+
 
         for (int i=0;i<nbTriangle;i++)
         {
@@ -574,86 +550,59 @@ int main() {
 
 
 
-            // Rotate in Z-Axis/
-            MultiplyMatrixVector(&tris[i].p[0], &triRotatedZ.p[0], matRotZ);
-            MultiplyMatrixVector(&tris[i].p[1], &triRotatedZ.p[1], matRotZ);
-            MultiplyMatrixVector(&tris[i].p[2], &triRotatedZ.p[2], matRotZ);
-
-            // Rotate in X-Axis
-            MultiplyMatrixVector(&triRotatedZ.p[0], &triRotatedZX.p[0], matRotX);
-            MultiplyMatrixVector(&triRotatedZ.p[1], &triRotatedZX.p[1], matRotX);
-            MultiplyMatrixVector(&triRotatedZ.p[2], &triRotatedZX.p[2], matRotX);
-
-            // Rotate in X-Axis
-            MultiplyMatrixVector(&triRotatedZX.p[0], &triRotatedZXY.p[0], matRotY);
-            MultiplyMatrixVector(&triRotatedZX.p[1], &triRotatedZXY.p[1], matRotY);
-            MultiplyMatrixVector(&triRotatedZX.p[2], &triRotatedZXY.p[2], matRotY);
-
-            // Offset into the screen
-            triTranslated = triRotatedZXY;
-            triTranslated.p[0].z = triRotatedZXY.p[0].z + dz;
-            triTranslated.p[1].z = triRotatedZXY.p[1].z + dz;
-            triTranslated.p[2].z = triRotatedZXY.p[2].z + dz;
-
-
-            triTranslated.p[0].x = triRotatedZXY.p[0].x + dx;
-            triTranslated.p[1].x = triRotatedZXY.p[1].x + dx;
-            triTranslated.p[2].x = triRotatedZXY.p[2].x + dx;
-
-            triTranslated.p[0].y = triRotatedZXY.p[0].y + dy;
-            triTranslated.p[1].y = triRotatedZXY.p[1].y + dy;
-            triTranslated.p[2].y = triRotatedZXY.p[2].y + dy;
+            // World Matrix Transform
+            triTransformed.p[0] = Matrix_MultiplyVector(&matWorld, &tris[i].p[0]);
+            triTransformed.p[1] = Matrix_MultiplyVector(&matWorld, &tris[i].p[1]);
+            triTransformed.p[2] = Matrix_MultiplyVector(&matWorld, &tris[i].p[2]);
 
 
             // Use Cross-Product to get surface normal
             vec3d normal, line1, line2;
-            line1.x = triTranslated.p[1].x - triTranslated.p[0].x;
-            line1.y = triTranslated.p[1].y - triTranslated.p[0].y;
-            line1.z = triTranslated.p[1].z - triTranslated.p[0].z;
 
-            line2.x = triTranslated.p[2].x - triTranslated.p[0].x;
-            line2.y = triTranslated.p[2].y - triTranslated.p[0].y;
-            line2.z = triTranslated.p[2].z - triTranslated.p[0].z;
+            // Get lines either side of triangle
+            line1 = Vector_Sub(&triTransformed.p[1], &triTransformed.p[0]);
+            line2 = Vector_Sub(&triTransformed.p[2], &triTransformed.p[0]);
 
-            normal.x = line1.y * line2.z - line1.z * line2.y;
-            normal.y = line1.z * line2.x - line1.x * line2.z;
-            normal.z = line1.x * line2.y - line1.y * line2.x;
+            // Take cross product of lines to get normal to triangle surface
+            normal = Vector_CrossProduct(&line1, &line2);
 
-            // It's normally normal to normalise the normal
-            float l = sqrtf(normal.x*normal.x + normal.y*normal.y + normal.z*normal.z);
-            normal.x /= l; normal.y /= l; normal.z /= l;
+            // You normally need to normalise a normal!
+            normal = Vector_Normalise(&normal);
 
-            /*if (normal.z < 0)*/
-            if(normal.x * (triTranslated.p[0].x - vCamera.x) +
-               normal.y * (triTranslated.p[0].y - vCamera.y) +
-               normal.z * (triTranslated.p[0].z - vCamera.z) < 0.0f)
+            // Get Ray from triangle to camera
+            vec3d vCameraRay = Vector_Sub(&triTransformed.p[0],&vCamera);
+
+            // If ray is aligned with normal, then triangle is visible
+            if (Vector_DotProduct(&normal, &vCameraRay) < 0.0f)
             {
-
-
                 // Illumination
-                vec3d light_direction = { 0.0f, 0.0f, -1.0f };
-                float l_light = sqrtf(light_direction.x*light_direction.x + light_direction.y*light_direction.y + light_direction.z*light_direction.z);
-                light_direction.x /= l_light; light_direction.y /= l_light; light_direction.z /= l_light;
+                vec3d light_direction = { 0.0f, 1.0f, -1.0f };
+                light_direction = Vector_Normalise(&light_direction);
 
-                // How similar is normal to light direction
-                float dp = normal.x * light_direction.x + normal.y * light_direction.y + normal.z * light_direction.z;
+                // How "aligned" are light direction and triangle surface normal?
+                float dp = fmax(0.1f, Vector_DotProduct(&light_direction, &normal));
 
-                triTranslated.color= GetColour(dp);
+                // Choose console colours as required (much easier with RGB)
+                triTransformed.color =  GetColour(dp);
+
 
                 // Project triangles from 3D --> 2D
-                MultiplyMatrixVector(&triTranslated.p[0], &triProjected.p[0], matProj);
-                MultiplyMatrixVector(&triTranslated.p[1], &triProjected.p[1], matProj);
-                MultiplyMatrixVector(&triTranslated.p[2], &triProjected.p[2], matProj);
+                triProjected.p[0]= Matrix_MultiplyVector(&matProj,&triTransformed.p[0]);
+                triProjected.p[1]= Matrix_MultiplyVector(&matProj,&triTransformed.p[1]);
+                triProjected.p[2]= Matrix_MultiplyVector(&matProj,&triTransformed.p[2]);
 
-                triProjected.color = triTranslated.color;
+                triProjected.p[0] = Vector_Div(&triProjected.p[0], triProjected.p[0].w);
+                triProjected.p[1] = Vector_Div(&triProjected.p[1], triProjected.p[1].w);
+                triProjected.p[2] = Vector_Div(&triProjected.p[2], triProjected.p[2].w);
+
+                triProjected.color = triTransformed.color;
 
                 // Scale into view
-                triProjected.p[0].x += 1.0f;
-                triProjected.p[0].y += 1.0f;
-                triProjected.p[1].x += 1.0f;
-                triProjected.p[1].y += 1.0f;
-                triProjected.p[2].x += 1.0f;
-                triProjected.p[2].y += 1.0f;
+                // Offset verts into visible normalised space
+                vec3d vOffsetView = { 1,1,0 };
+                triProjected.p[0] = Vector_Add(&triProjected.p[0], &vOffsetView);
+                triProjected.p[1] = Vector_Add(&triProjected.p[1], &vOffsetView);
+                triProjected.p[2] = Vector_Add(&triProjected.p[2],&vOffsetView);
                 triProjected.p[0].x *= 0.5f * (float) SCREEN_W;
                 triProjected.p[0].y *= 0.5f * (float) SCREEN_H;
                 triProjected.p[1].x *= 0.5f * (float) SCREEN_W;
@@ -677,7 +626,7 @@ int main() {
                      (int)triangleToRaster[j].p[2].x, (int)triangleToRaster[j].p[2].y,
                      (int)triangleToRaster[j].color);
 
-            /*circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
+           /* circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
             circlefill(buffer,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y,2, makecol(255,255,255));
             circlefill(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,2, makecol(255,255,255));
 
@@ -686,7 +635,15 @@ int main() {
             line(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));*/
         }
 
+
+        tempsFinOperation=clock();
+        if((tempsFinOperation-tempsDebutOperation)!=0)
+        {
+           fps=(tempsFinOperation-tempsDebutOperation);
+        }
+        textprintf_ex(buffer,font,100,100, makecol(255,0,0),-1,"%Lf %s",(long double)(1000/fps),"fps");
         blit(buffer,screen,0,0,0,0,SCREEN_W,SCREEN_H);
+
 
     }
     allegro_exit();
