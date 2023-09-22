@@ -831,53 +831,44 @@ int main() {
                 nClippedTriangles = Triangle_ClipAgainstPlane(vecTmp, vecTmp, &triViewed, &clipped[0], &clipped[1]);
                 compteurTriangle += nClippedTriangles;
 
-                /*               for (int n = 0; n < nClippedTriangles; n++) {
-                                   // Project triangles from 3D --> 2D
-                                   triProjected.p[0] = Matrix_MultiplyVector(&matProj, &clipped[n].p[0]);
-                                   triProjected.p[1] = Matrix_MultiplyVector(&matProj, &clipped[n].p[1]);
-                                   triProjected.p[2] = Matrix_MultiplyVector(&matProj, &clipped[n].p[2]);
-                                   triProjected.color = clipped[n].color;
+                for (int n = 0; n < nClippedTriangles; n++) {
+                    // Project triangles from 3D --> 2D
+                    triProjected.p[0] = Matrix_MultiplyVector(&matProj, &clipped[n].p[0]);
+                    triProjected.p[1] = Matrix_MultiplyVector(&matProj, &clipped[n].p[1]);
+                    triProjected.p[2] = Matrix_MultiplyVector(&matProj, &clipped[n].p[2]);
+                    triProjected.color = clipped[n].color;
 
-                                   // Scale into view, we moved the normalising into cartesian space
-                                   // out of the matrix.vector function from the previous videos, so
-                                   // do this manually
-                                   triProjected.p[0] = Vector_Div(&triProjected.p[0], triProjected.p[0].w);
-                                   triProjected.p[1] = Vector_Div(&triProjected.p[1], triProjected.p[1].w);
-                                   triProjected.p[2] = Vector_Div(&triProjected.p[2], triProjected.p[2].w);
+                    // Scale into view, we moved the normalising into cartesian space
+                    // out of the matrix.vector function from the previous videos, so
+                    // do this manually
+                    triProjected.p[0] = Vector_Div(&triProjected.p[0], triProjected.p[0].w);
+                    triProjected.p[1] = Vector_Div(&triProjected.p[1], triProjected.p[1].w);
+                    triProjected.p[2] = Vector_Div(&triProjected.p[2], triProjected.p[2].w);
 
-                                   // X/Y are inverted so put them back
-                                   triProjected.p[0].x *= -1.0f;
-                                   triProjected.p[1].x *= -1.0f;
-                                   triProjected.p[2].x *= -1.0f;
-                                   triProjected.p[0].y *= -1.0f;
-                                   triProjected.p[1].y *= -1.0f;
-                                   triProjected.p[2].y *= -1.0f;
+                    // X/Y are inverted so put them back
+                    triProjected.p[0].x *= -1.0f;
+                    triProjected.p[1].x *= -1.0f;
+                    triProjected.p[2].x *= -1.0f;
+                    triProjected.p[0].y *= -1.0f;
+                    triProjected.p[1].y *= -1.0f;
+                    triProjected.p[2].y *= -1.0f;
 
-                                   // Offset verts into visible normalised space
-                                   vec3d vOffsetView = {1, 1, 0};
-                                   triProjected.p[0] = Vector_Add(&triProjected.p[0], &vOffsetView);
-                                   triProjected.p[1] = Vector_Add(&triProjected.p[1], &vOffsetView);
-                                   triProjected.p[2] = Vector_Add(&triProjected.p[2], &vOffsetView);
-                                   triProjected.p[0].x *= 0.5f * (float) SCREEN_W;
-                                   triProjected.p[0].y *= 0.5f * (float) SCREEN_H;
-                                   triProjected.p[1].x *= 0.5f * (float) SCREEN_W;
-                                   triProjected.p[1].y *= 0.5f * (float) SCREEN_H;
-                                   triProjected.p[2].x *= 0.5f * (float) SCREEN_W;
-                                   triProjected.p[2].y *= 0.5f * (float) SCREEN_H;
-                                   if(i==0)
-                                       printf("%f\n",triangleToRaster[i].p[0].x);
-                                   else if(i<2&&nClippedTriangles==1)
-                                   {
-                                       triangleToRaster[n]=triProjected;
-                                   }
-                                   else
-                                   {
-                                       triangleToRaster[i+n]=triProjected;
-                                   }*/
-/*
-                triangleToRaster[i].ApproxZ =(triangleToRaster[i].p[0].z + triangleToRaster[i].p[1].z + triangleToRaster[i].p[2].z) /3.0f;*/
+                    // Offset verts into visible normalised space
+                    vec3d vOffsetView = {1, 1, 0};
+                    triProjected.p[0] = Vector_Add(&triProjected.p[0], &vOffsetView);
+                    triProjected.p[1] = Vector_Add(&triProjected.p[1], &vOffsetView);
+                    triProjected.p[2] = Vector_Add(&triProjected.p[2], &vOffsetView);
+                    triProjected.p[0].x *= 0.5f * (float) SCREEN_W;
+                    triProjected.p[0].y *= 0.5f * (float) SCREEN_H;
+                    triProjected.p[1].x *= 0.5f * (float) SCREEN_W;
+                    triProjected.p[1].y *= 0.5f * (float) SCREEN_H;
+                    triProjected.p[2].x *= 0.5f * (float) SCREEN_W;
+                    triProjected.p[2].y *= 0.5f * (float) SCREEN_H;
+                    triProjected.ApproxZ = (triProjected.p[0].z + triProjected.p[1].z + triProjected.p[2].z) / 3.0f;
+                    enfiler(file, triProjected);
+                }
 
-                // Project triangles from 3D --> 2D
+               /* // Project triangles from 3D --> 2D
                 triProjected.p[0] = Matrix_MultiplyVector(&matProj, &triViewed.p[0]);
                 triProjected.p[1] = Matrix_MultiplyVector(&matProj, &triViewed.p[1]);
                 triProjected.p[2] = Matrix_MultiplyVector(&matProj, &triViewed.p[2]);
@@ -903,7 +894,7 @@ int main() {
                 triProjected.ApproxZ = (triProjected.p[0].z + triProjected.p[1].z + triProjected.p[2].z) / 3.0f;
                 enfiler(file, triProjected);
                 triangleToRaster[i] = triProjected;
-                triangleToRaster[i].ApproxZ =(triangleToRaster[i].p[0].z + triangleToRaster[i].p[1].z + triangleToRaster[i].p[2].z) / 3.0f;
+                triangleToRaster[i].ApproxZ =(triangleToRaster[i].p[0].z + triangleToRaster[i].p[1].z + triangleToRaster[i].p[2].z) / 3.0f;*/
             }
         }
 
@@ -914,6 +905,10 @@ int main() {
         t_maille *maille=file->premier;
         for(int j=0;j<nbTriangle;j++)
         {
+            if(maille==NULL)
+            {
+                break;
+            }
             // Rasterize triangle
 
            /* triangle(buffer, (int)triangleToRaster[j].p[0].x, (int)triangleToRaster[j].p[0].y,
@@ -926,10 +921,6 @@ int main() {
                      (int)maille->data.color);
 
             maille=maille->next;
-            if(maille==NULL)
-            {
-                break;
-            }
 
 
           /*  circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
