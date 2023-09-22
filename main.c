@@ -354,8 +354,10 @@ float plane_d = -Vector_DotProduct(plane_n, plane_p);
 float ad = Vector_DotProduct(lineStart, plane_n);
 float bd = Vector_DotProduct(lineEnd, plane_n);
 float t = (-plane_d - ad) / (bd - ad);
-vec3d lineStartToEnd = Vector_Sub(lineEnd, lineStart);
-vec3d lineToIntersect = Vector_Mul(&lineStartToEnd, t);
+vec3d lineStartToEnd = initVector();
+lineStartToEnd = Vector_Sub(lineEnd, lineStart);
+vec3d lineToIntersect = initVector();
+lineToIntersect = Vector_Mul(&lineStartToEnd, t);
 return Vector_Add(lineStart, &lineToIntersect);
 }
 
@@ -367,20 +369,26 @@ int Triangle_ClipAgainstPlane(vec3d plane_p, vec3d plane_n, t_triangle *in_tri, 
 
     // Create two temporary storage arrays to classify points either side of plane
     // If distance sign is positive, point lies on "inside" of plane
-    vec3d* inside_points[3];  int nInsidePointCount = 0;
-    vec3d* outside_points[3]; int nOutsidePointCount = 0;
+    vec3d inside_points[3];  int nInsidePointCount = 0;
+    vec3d outside_points[3]; int nOutsidePointCount = 0;
+
+    for(int i=0;i<2;i++)
+    {
+        inside_points[i]=initVector();
+        inside_points[i]=initVector();
+    }
 
     // Get signed distance of each point in triangle to plane
     float d0 = dist(&in_tri->p[0],&plane_n,&plane_p);
     float d1 = dist(&in_tri->p[1],&plane_n,&plane_p);
     float d2 = dist(&in_tri->p[2],&plane_n,&plane_p);
 
-    if (d0 >= 0) { inside_points[nInsidePointCount++] = &in_tri->p[0]; }
-    else { outside_points[nOutsidePointCount++] = &in_tri->p[0]; }
-    if (d1 >= 0) { inside_points[nInsidePointCount++] = &in_tri->p[1]; }
-    else { outside_points[nOutsidePointCount++] = &in_tri->p[1]; }
-    if (d2 >= 0) { inside_points[nInsidePointCount++] = &in_tri->p[2]; }
-    else { outside_points[nOutsidePointCount++] = &in_tri->p[2]; }
+    if (d0 >= 0) { inside_points[nInsidePointCount++] = in_tri->p[0]; }
+    else { outside_points[nOutsidePointCount++] = in_tri->p[0]; }
+    if (d1 >= 0) { inside_points[nInsidePointCount++] = in_tri->p[1]; }
+    else { outside_points[nOutsidePointCount++] = in_tri->p[1]; }
+    if (d2 >= 0) { inside_points[nInsidePointCount++] = in_tri->p[2]; }
+    else { outside_points[nOutsidePointCount++] = in_tri->p[2]; }
 
     // Now classify triangle points, and break the input triangle into
     // smaller output triangles if required. There are four possible
@@ -409,15 +417,15 @@ int Triangle_ClipAgainstPlane(vec3d plane_p, vec3d plane_n, t_triangle *in_tri, 
         // the plane, the triangle simply becomes a smaller triangle
 
         // Copy appearance info to new triangle
-        out_tri1->color =  in_tri->color;
+        out_tri1->color = makecol(255,0,0);
 
         // The inside point is valid, so keep that...
-        out_tri1->p[0] = *inside_points[0];
+        out_tri1->p[0] = inside_points[0];
 
         // but the two new points are at the locations where the
         // original sides of the triangle (lines) intersect with the plane
-        out_tri1->p[1] = Vector_IntersectPlane(&plane_p, &plane_n, inside_points[0], outside_points[0]);
-        out_tri1->p[2] = Vector_IntersectPlane(&plane_p, &plane_n, inside_points[0], outside_points[1]);
+        out_tri1->p[1] = Vector_IntersectPlane(&plane_p, &plane_n, &inside_points[0], &outside_points[0]);
+        out_tri1->p[2] = Vector_IntersectPlane(&plane_p, &plane_n, &inside_points[0], &outside_points[1]);
 
         return 1; // Return the newly formed single triangle
     }
@@ -429,23 +437,23 @@ int Triangle_ClipAgainstPlane(vec3d plane_p, vec3d plane_n, t_triangle *in_tri, 
         // represent a quad with two new triangles
 
         // Copy appearance info to new triangles
-        out_tri1->color =  in_tri->color;
+        out_tri1->color = makecol(0,255,0);
 
-        out_tri2->color =  in_tri->color;
+        out_tri2->color =  makecol(0,0,255);
 
         // The first triangle consists of the two inside points and a new
         // point determined by the location where one side of the triangle
         // intersects with the plane
-        out_tri1->p[0] = *inside_points[0];
-        out_tri1->p[1] = *inside_points[1];
-        out_tri1->p[2] = Vector_IntersectPlane(&plane_p, &plane_n, inside_points[0], outside_points[0]);
+        out_tri1->p[0] = inside_points[0];
+        out_tri1->p[1] = inside_points[1];
+        out_tri1->p[2] = Vector_IntersectPlane(&plane_p, &plane_n, &inside_points[0], &outside_points[0]);
 
         // The second triangle is composed of one of he inside points, a
         // new point determined by the intersection of the other side of the
         // triangle and the plane, and the newly created point above
-        out_tri2->p[0] = *inside_points[1];
+        out_tri2->p[0] = inside_points[1];
         out_tri2->p[1] = out_tri1->p[2];
-        out_tri2->p[2] = Vector_IntersectPlane(&plane_p, &plane_n, inside_points[1], outside_points[0]);
+        out_tri2->p[2] = Vector_IntersectPlane(&plane_p, &plane_n, &inside_points[1], &outside_points[0]);
 
         return 2; // Return two newly formed triangles which form a quad
     }
@@ -548,7 +556,7 @@ int main() {
     clock_t tempsDebutOperation,tempsFinOperation;
 
     FILE *pf;
-    pf= fopen("../axes.obj","r");
+    pf= fopen("../mapDust.obj","r");
     if(pf==NULL)
     {
         allegro_message("could not open obj");
@@ -712,11 +720,11 @@ int main() {
 
         if(key[KEY_A])
         {
-            fYaw-=1/fps;
+            fYaw+=1/fps;
         }
         if(key[KEY_D])
         {
-            fYaw+=1/fps;
+            fYaw-=1/fps;
         }
 
 
@@ -828,7 +836,8 @@ int main() {
                 t_triangle clipped[2];
 
                 vec3d vecTmp = {0.0f, 0.0f, 0.1f};
-                nClippedTriangles = Triangle_ClipAgainstPlane(vecTmp, vecTmp, &triViewed, &clipped[0], &clipped[1]);
+                vec3d vecTmp2 = {0.0f, 0.0f, 1.0f};
+                nClippedTriangles = Triangle_ClipAgainstPlane(vecTmp, vecTmp2, &triViewed, &clipped[0], &clipped[1]);
                 compteurTriangle += nClippedTriangles;
 
                 for (int n = 0; n < nClippedTriangles; n++) {
@@ -844,14 +853,6 @@ int main() {
                     triProjected.p[0] = Vector_Div(&triProjected.p[0], triProjected.p[0].w);
                     triProjected.p[1] = Vector_Div(&triProjected.p[1], triProjected.p[1].w);
                     triProjected.p[2] = Vector_Div(&triProjected.p[2], triProjected.p[2].w);
-
-                    // X/Y are inverted so put them back
-                    triProjected.p[0].x *= -1.0f;
-                    triProjected.p[1].x *= -1.0f;
-                    triProjected.p[2].x *= -1.0f;
-                    triProjected.p[0].y *= -1.0f;
-                    triProjected.p[1].y *= -1.0f;
-                    triProjected.p[2].y *= -1.0f;
 
                     // Offset verts into visible normalised space
                     vec3d vOffsetView = {1, 1, 0};
@@ -903,12 +904,9 @@ int main() {
        /* qsort(file,nbTriangle,sizeof(t_file),comparer);*/
 
         t_maille *maille=file->premier;
-        for(int j=0;j<nbTriangle;j++)
+        for(maille;maille!=NULL;maille=maille->next)
         {
-            if(maille==NULL)
-            {
-                break;
-            }
+
             // Rasterize triangle
 
            /* triangle(buffer, (int)triangleToRaster[j].p[0].x, (int)triangleToRaster[j].p[0].y,
@@ -919,8 +917,6 @@ int main() {
                      (int)maille->data.p[1].x, (int)maille->data.p[1].y,
                      (int)maille->data.p[2].x, (int)maille->data.p[2].y,
                      (int)maille->data.color);
-
-            maille=maille->next;
 
 
           /*  circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
