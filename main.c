@@ -243,6 +243,122 @@ vec3d Vector_CrossProduct(vec3d *v1, vec3d *v2)
 return v;
 }
 
+// Return signed shortest distance from point to plane, plane normal must be normalised
+float dist(vec3d *p,vec3d *plane_n,vec3d *plane_p)
+{
+vec3d n = Vector_Normalise(p);
+return (plane_n->x * p->x + plane_n->y * p->y + plane_n->z * p->z - Vector_DotProduct(plane_n, plane_p));
+}
+
+vec3d Vector_IntersectPlane(vec3d *plane_p, vec3d *plane_n, vec3d *lineStart, vec3d *lineEnd)
+{
+*plane_n = Vector_Normalise(plane_n);
+float plane_d = -Vector_DotProduct(plane_n, plane_p);
+float ad = Vector_DotProduct(lineStart, plane_n);
+float bd = Vector_DotProduct(lineEnd, plane_n);
+float t = (-plane_d - ad) / (bd - ad);
+vec3d lineStartToEnd = Vector_Sub(lineEnd, lineStart);
+vec3d lineToIntersect = Vector_Mul(&lineStartToEnd, t);
+return Vector_Add(lineStart, &lineToIntersect);
+}
+
+
+int Triangle_ClipAgainstPlane(vec3d plane_p, vec3d plane_n, t_triangle *in_tri, t_triangle *out_tri1, t_triangle *out_tri2)
+{
+    // Make sure plane normal is indeed normal
+    plane_n = Vector_Normalise(&plane_n);
+
+    // Create two temporary storage arrays to classify points either side of plane
+    // If distance sign is positive, point lies on "inside" of plane
+    vec3d* inside_points[3];  int nInsidePointCount = 0;
+    vec3d* outside_points[3]; int nOutsidePointCount = 0;
+
+    // Get signed distance of each point in triangle to plane
+    float d0 = dist(&in_tri->p[0],&plane_n,&plane_p);
+    float d1 = dist(&in_tri->p[1],&plane_n,&plane_p);
+    float d2 = dist(&in_tri->p[2],&plane_n,&plane_p);
+
+    if (d0 >= 0) { inside_points[nInsidePointCount++] = &in_tri->p[0]; }
+    else { outside_points[nOutsidePointCount++] = &in_tri->p[0]; }
+    if (d1 >= 0) { inside_points[nInsidePointCount++] = &in_tri->p[1]; }
+    else { outside_points[nOutsidePointCount++] = &in_tri->p[1]; }
+    if (d2 >= 0) { inside_points[nInsidePointCount++] = &in_tri->p[2]; }
+    else { outside_points[nOutsidePointCount++] = &in_tri->p[2]; }
+
+    // Now classify triangle points, and break the input triangle into
+    // smaller output triangles if required. There are four possible
+    // outcomes...
+
+    if (nInsidePointCount == 0)
+    {
+        // All points lie on the outside of plane, so clip whole triangle
+        // It ceases to exist
+
+        return 0; // No returned triangles are valid
+    }
+
+    else if (nInsidePointCount == 3)
+    {
+        // All points lie on the inside of plane, so do nothing
+        // and allow the triangle to simply pass through
+        out_tri1 = in_tri;
+
+        return 1; // Just the one returned original triangle is valid
+    }
+
+    else if (nInsidePointCount == 1 && nOutsidePointCount == 2)
+    {
+        // Triangle should be clipped. As two points lie outside
+        // the plane, the triangle simply becomes a smaller triangle
+
+        // Copy appearance info to new triangle
+        out_tri1->color =  in_tri->color;
+
+        // The inside point is valid, so keep that...
+        out_tri1->p[0] = *inside_points[0];
+
+        // but the two new points are at the locations where the
+        // original sides of the triangle (lines) intersect with the plane
+        out_tri1->p[1] = Vector_IntersectPlane(&plane_p, &plane_n, inside_points[0], outside_points[0]);
+        out_tri1->p[2] = Vector_IntersectPlane(&plane_p, &plane_n, inside_points[0], outside_points[1]);
+
+        return 1; // Return the newly formed single triangle
+    }
+
+    else if (nInsidePointCount == 2 && nOutsidePointCount == 1)
+    {
+        // Triangle should be clipped. As two points lie inside the plane,
+        // the clipped triangle becomes a "quad". Fortunately, we can
+        // represent a quad with two new triangles
+
+        // Copy appearance info to new triangles
+        out_tri1->color =  in_tri->color;
+
+        out_tri2->color =  in_tri->color;
+
+        // The first triangle consists of the two inside points and a new
+        // point determined by the location where one side of the triangle
+        // intersects with the plane
+        out_tri1->p[0] = *inside_points[0];
+        out_tri1->p[1] = *inside_points[1];
+        out_tri1->p[2] = Vector_IntersectPlane(&plane_p, &plane_n, inside_points[0], outside_points[0]);
+
+        // The second triangle is composed of one of he inside points, a
+        // new point determined by the intersection of the other side of the
+        // triangle and the plane, and the newly created point above
+        out_tri2->p[0] = *inside_points[1];
+        out_tri2->p[1] = out_tri1->p[2];
+        out_tri2->p[2] = Vector_IntersectPlane(&plane_p, &plane_n, inside_points[1], outside_points[0]);
+
+        return 2; // Return two newly formed triangles which form a quad
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+
 mat4x4 Matrix_PointAt(vec3d *pos, vec3d *target, vec3d *up)
 {
     // Calculate new forward direction
@@ -335,7 +451,7 @@ int main() {
     clock_t tempsDebutOperation,tempsFinOperation;
 
     FILE *pf;
-    pf= fopen("../teapot.obj","r");
+    pf= fopen("../mapTest.obj","r");
     if(pf==NULL)
     {
         allegro_message("could not open obj");
@@ -422,9 +538,10 @@ int main() {
     float fTheta=M_PI,fPhi=0,fAngleRad=0;
     float dx=0,dy=0,dz=100;
     float fFov = 90.0f;
+    float fYaw=0;
 
     mat4x4 matProj={0},matRotZ={0},matRotX={0},matRotY={0},matTrans={0},matWorld={0},matRotated={0};
-    t_triangle triProjected, triTransformed;
+    t_triangle triProjected, triTransformed,triViewed;
 
     vec3d vCamera={0},vLookDir={0};
 
@@ -441,44 +558,85 @@ int main() {
         clear_bitmap(buffer);
 
 
-        if(key [KEY_W])
+        if(key [KEY_E])
         {
             fTheta+=10/fps;
         }
-        if(key [KEY_E])
+        if(key [KEY_R])
         {
             fPhi+=10/fps;
         }
 
-        if(key [KEY_R])
+        /*fTheta+=0.01f;
+        fPhi+=0.01f*0.5f;*/
+
+        if(key [KEY_T])
         {
             fAngleRad+=10/fps;
         }
-
-
-        if(key[KEY_UP])
+        if(key[KEY_Y])
         {
             dz+=100/fps;
         }
-        if(key[KEY_DOWN])
+        if(key[KEY_U])
         {
             dz-=100/fps;
         }
-        if(key[KEY_T])
+        if(key[KEY_I])
         {
             dx+=100/fps;
         }
-        if(key[KEY_Y])
+        if(key[KEY_O])
         {
             dx-=100/fps;
         }
-        if(key[KEY_U])
+        if(key[KEY_P])
         {
             dy+=100/fps;
         }
-        if(key[KEY_I])
+        if(key[KEY_M])
         {
             dy-=100/fps;
+        }
+
+        vec3d vFoward = Vector_Mul(&vLookDir,(float)(10/fps));
+        if(key[KEY_W])
+        {
+            vCamera= Vector_Add(&vCamera,&vFoward);
+        }
+        if(key[KEY_S])
+        {
+            vCamera= Vector_Sub(&vCamera,&vFoward);
+        }
+
+
+
+        if(key[KEY_A])
+        {
+            fYaw-=1/fps;
+        }
+        if(key[KEY_D])
+        {
+            fYaw+=1/fps;
+        }
+
+
+
+        if(key[KEY_DOWN])
+        {
+            vCamera.y-=100/fps;
+        }
+        if(key[KEY_UP])
+        {
+            vCamera.y+=100/fps;
+        }
+        if(key[KEY_LEFT])
+        {
+            vCamera.x+=100/fps;
+        }
+        if(key[KEY_RIGHT])
+        {
+            vCamera.x-=100/fps;
         }
         matRotZ= Matrix_MakeRotationZ(fTheta);
         matRotX= Matrix_MakeRotationX(fPhi);
@@ -494,6 +652,20 @@ int main() {
 
 
         vec3d vUp={0,1,0};
+        vec3d vTarget;
+
+        vTarget.x=0;
+        vTarget.y=0;
+        vTarget.z=1;
+
+
+        mat4x4 matCameraRot= Matrix_MakeRotationY(fYaw);
+
+        vLookDir= Matrix_MultiplyVector(&matCameraRot,&vTarget);
+        vTarget= Vector_Add(&vCamera,&vLookDir);
+        mat4x4 matCamera = Matrix_PointAt(&vCamera,&vTarget,&vUp);
+
+        mat4x4 matView = Matrix_QuickInverse(&matCamera);
 
         for (int i=0;i<nbTriangle;i++)
         {
@@ -532,23 +704,75 @@ int main() {
             vec3d vCameraRay = Vector_Sub(&triTransformed.p[0],&vCamera);
 
             // If ray is aligned with normal, then triangle is visible
-            if (Vector_DotProduct(&normal, &vCameraRay) < 0.0f)
-            {
+            if (Vector_DotProduct(&normal, &vCameraRay) < 0.0f) {
                 // Illumination
-                vec3d light_direction = { 0.0f, 1.0f, -1.0f };
+                vec3d light_direction = {0.0f, 1.0f, -1.0f};
                 light_direction = Vector_Normalise(&light_direction);
 
                 // How "aligned" are light direction and triangle surface normal?
                 float dp = fmax(0.1f, Vector_DotProduct(&light_direction, &normal));
 
                 // Choose console colours as required (much easier with RGB)
-                triTransformed.color =  GetColour(dp);
+                triTransformed.color = GetColour(dp);
 
+
+                // Convert World Space --> View Space
+                triViewed.p[0] = Matrix_MultiplyVector(&matView, &triTransformed.p[0]);
+                triViewed.p[1] = Matrix_MultiplyVector(&matView, &triTransformed.p[1]);
+                triViewed.p[2] = Matrix_MultiplyVector(&matView, &triTransformed.p[2]);
+
+                /*triViewed.color=triTransformed.color;
+
+                // Clip Viewed Triangle against near plane, this could form two additional
+                // additional triangles.
+                int nClippedTriangles = 0;
+                t_triangle clipped[2];
+
+                vec3d vecTmp={0.0f, 0.0f, 0.1f};
+                nClippedTriangles = Triangle_ClipAgainstPlane(vecTmp, vecTmp, &triViewed,&clipped[0],&clipped[1]);
+                // We may end up with multiple triangles form the clip, so project as
+                // required
+                for (int n = 0; n < nClippedTriangles; n++) {
+                    // Project triangles from 3D --> 2D
+                    triProjected.p[0] = Matrix_MultiplyVector(&matProj, &clipped[n].p[0]);
+                    triProjected.p[1] = Matrix_MultiplyVector(&matProj, &clipped[n].p[1]);
+                    triProjected.p[2] = Matrix_MultiplyVector(&matProj, &clipped[n].p[2]);
+                    triProjected.color = clipped[n].color;
+
+                    // Scale into view, we moved the normalising into cartesian space
+                    // out of the matrix.vector function from the previous videos, so
+                    // do this manually
+                    triProjected.p[0] = Vector_Div(&triProjected.p[0], triProjected.p[0].w);
+                    triProjected.p[1] = Vector_Div(&triProjected.p[1], triProjected.p[1].w);
+                    triProjected.p[2] = Vector_Div(&triProjected.p[2], triProjected.p[2].w);
+
+                    // X/Y are inverted so put them back
+                    triProjected.p[0].x *= -1.0f;
+                    triProjected.p[1].x *= -1.0f;
+                    triProjected.p[2].x *= -1.0f;
+                    triProjected.p[0].y *= -1.0f;
+                    triProjected.p[1].y *= -1.0f;
+                    triProjected.p[2].y *= -1.0f;
+
+                    // Offset verts into visible normalised space
+                    vec3d vOffsetView = {1, 1, 0};
+                    triProjected.p[0] = Vector_Add(&triProjected.p[0], &vOffsetView);
+                    triProjected.p[1] = Vector_Add(&triProjected.p[1], &vOffsetView);
+                    triProjected.p[2] = Vector_Add(&triProjected.p[2], &vOffsetView);
+                    triProjected.p[0].x *= 0.5f * (float) SCREEN_W;
+                    triProjected.p[0].y *= 0.5f * (float) SCREEN_H;
+                    triProjected.p[1].x *= 0.5f * (float) SCREEN_W;
+                    triProjected.p[1].y *= 0.5f * (float) SCREEN_H;
+                    triProjected.p[2].x *= 0.5f * (float) SCREEN_W;
+                    triProjected.p[2].y *= 0.5f * (float) SCREEN_H;
+                    triangleToRaster[n]=triProjected;
+                }
+                triangleToRaster[i].ApproxZ =(triangleToRaster[i].p[0].z + triangleToRaster[i].p[1].z + triangleToRaster[i].p[2].z) /3.0f;*/
 
                 // Project triangles from 3D --> 2D
-                triProjected.p[0]= Matrix_MultiplyVector(&matProj,&triTransformed.p[0]);
-                triProjected.p[1]= Matrix_MultiplyVector(&matProj,&triTransformed.p[1]);
-                triProjected.p[2]= Matrix_MultiplyVector(&matProj,&triTransformed.p[2]);
+                triProjected.p[0]= Matrix_MultiplyVector(&matProj,&triViewed.p[0]);
+                triProjected.p[1]= Matrix_MultiplyVector(&matProj,&triViewed.p[1]);
+                triProjected.p[2]= Matrix_MultiplyVector(&matProj,&triViewed.p[2]);
 
                 triProjected.p[0] = Vector_Div(&triProjected.p[0], triProjected.p[0].w);
                 triProjected.p[1] = Vector_Div(&triProjected.p[1], triProjected.p[1].w);
