@@ -637,7 +637,7 @@ int main() {
     }
 
 
-    t_triangle *triangleToRaster= malloc(sizeof (t_triangle)*nbTriangle);
+    t_triangle *triangleToRaster= malloc(sizeof (t_triangle)*nbTriangle*3);
 
 
     float fTheta=M_PI,fPhi=0,fAngleRad=0;
@@ -813,7 +813,7 @@ int main() {
             // If ray is aligned with normal, then triangle is visible
             if (Vector_DotProduct(&normal, &vCameraRay) < 0.0f) {
                 // Illumination
-                vec3d light_direction = {0.0f, 1.0f, -1.0f};
+                vec3d light_direction = {1.0f, 1.0f, -1.0f};
                 light_direction = Vector_Normalise(&light_direction);
 
                 // How "aligned" are light direction and triangle surface normal?
@@ -866,7 +866,7 @@ int main() {
                     triProjected.p[2].x *= 0.5f * (float) SCREEN_W;
                     triProjected.p[2].y *= 0.5f * (float) SCREEN_H;
                     triProjected.ApproxZ = (triProjected.p[0].z + triProjected.p[1].z + triProjected.p[2].z) / 3.0f;
-                    enfiler(file, triProjected);
+                    triangleToRaster[i+n]=triProjected;
                 }
 
                /* // Project triangles from 3D --> 2D
@@ -893,44 +893,46 @@ int main() {
                 triProjected.p[2].x *= 0.5f * (float) SCREEN_W;
                 triProjected.p[2].y *= 0.5f * (float) SCREEN_H;
                 triProjected.ApproxZ = (triProjected.p[0].z + triProjected.p[1].z + triProjected.p[2].z) / 3.0f;
-                enfiler(file, triProjected);
+                //enfiler(file, triProjected);
                 triangleToRaster[i] = triProjected;
                 triangleToRaster[i].ApproxZ =(triangleToRaster[i].p[0].z + triangleToRaster[i].p[1].z + triangleToRaster[i].p[2].z) / 3.0f;*/
             }
         }
 
-        /*qsort(triangleToRaster, nbTriangle, sizeof(t_triangle), comparer);*/
+        qsort(triangleToRaster, nbTriangle, sizeof(t_triangle), comparer);
 
        /* qsort(file,nbTriangle,sizeof(t_file),comparer);*/
 
         t_maille *maille=file->premier;
-        for(maille;maille!=NULL;maille=maille->next)
+
+        for(int j=0;j<nbTriangle;j++)/*
+        for(maille;maille!=NULL;maille=maille->next)*/
         {
 
             // Rasterize triangle
 
-           /* triangle(buffer, (int)triangleToRaster[j].p[0].x, (int)triangleToRaster[j].p[0].y,
+            triangle(buffer, (int)triangleToRaster[j].p[0].x, (int)triangleToRaster[j].p[0].y,
                      (int)triangleToRaster[j].p[1].x, (int)triangleToRaster[j].p[1].y,
                      (int)triangleToRaster[j].p[2].x, (int)triangleToRaster[j].p[2].y,
-                     (int)triangleToRaster[j].color);*/
-            triangle(buffer, (int)maille->data.p[0].x, (int)maille->data.p[0].y,
+                     (int)triangleToRaster[j].color);
+            /*triangle(buffer, (int)maille->data.p[0].x, (int)maille->data.p[0].y,
                      (int)maille->data.p[1].x, (int)maille->data.p[1].y,
                      (int)maille->data.p[2].x, (int)maille->data.p[2].y,
-                     (int)maille->data.color);
+                     (int)maille->data.color);*/
 
 
-          /*  circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
+            circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
             circlefill(buffer,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y,2, makecol(255,255,255));
             circlefill(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,2, makecol(255,255,255));
 
             line(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));
             line(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y, makecol(255,0,0));
-            line(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));*/
+            line(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));
         }
-        for(int j=0;j<nbTriangle;j++)
+        /*for(int j=0;j<nbTriangle;j++)
         {
             defiler(file);
-        }
+        }*/
 
 
         tempsFinOperation=clock();
@@ -939,7 +941,7 @@ int main() {
            fps=(double)1000/(tempsFinOperation-tempsDebutOperation);
         }
         textprintf_ex(buffer,font,100,100, makecol(255,0,0),-1,"%Lf %s",(long double)(fps),"fps");
-        textprintf_ex(buffer,font,100,200, makecol(255,0,0),-1,"%d %s",compteurTriangle,"triangle en plus");
+        textprintf_ex(buffer,font,100,200, makecol(255,0,0),-1,"%d %s",compteurTriangle,"triangle dessiné");
         compteurTriangle=0;
         blit(buffer,screen,0,0,0,0,SCREEN_W,SCREEN_H);
 
