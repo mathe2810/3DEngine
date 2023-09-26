@@ -934,6 +934,8 @@ int main() {
 
             // Rasterize triangle
 
+            printf("X: %d %d %d | Y: %d %d %d\n",(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[0].y,(int)triangleToRaster[j].p[1].y,(int)triangleToRaster[j].p[2].y);
+
             triangle(buffer, (int)triangleToRaster[j].p[0].x, (int)triangleToRaster[j].p[0].y,
                      (int)triangleToRaster[j].p[1].x, (int)triangleToRaster[j].p[1].y,
                      (int)triangleToRaster[j].p[2].x, (int)triangleToRaster[j].p[2].y,
@@ -952,6 +954,8 @@ int main() {
             line(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y, makecol(255,0,0));
             line(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));*/
         }
+
+        printf("\n");
         /*for(int j=0;j<nbTriangle;j++)
         {
             defiler(file);
