@@ -556,7 +556,7 @@ int main() {
     clock_t tempsDebutOperation,tempsFinOperation;
 
     FILE *pf;
-    pf= fopen("../mapDust.obj","r");
+    pf= fopen("../mapTest.obj","r");
     if(pf==NULL)
     {
         allegro_message("could not open obj");
@@ -699,14 +699,14 @@ int main() {
         }
         if(key[KEY_P])
         {
-            dy+=100/fps;
+            dy+=(float)(100/fps);
         }
         if(key[KEY_M])
         {
-            dy-=100/fps;
+            dy-=(float)(100/fps);
         }
 
-        vec3d vFoward = Vector_Mul(&vLookDir,(float)(10/fps));
+        vec3d vFoward = Vector_Mul(&vLookDir,(float)(100/fps));
         if(key[KEY_W])
         {
             vCamera= Vector_Add(&vCamera,&vFoward);
@@ -720,30 +720,30 @@ int main() {
 
         if(key[KEY_A])
         {
-            fYaw+=1/fps;
+            fYaw+=(float)(1/fps);
         }
         if(key[KEY_D])
         {
-            fYaw-=1/fps;
+            fYaw-=(float)(1/fps);
         }
 
 
 
         if(key[KEY_DOWN])
         {
-            vCamera.y-=100/fps;
+            vCamera.y+=(float)(100/fps);
         }
         if(key[KEY_UP])
         {
-            vCamera.y+=100/fps;
+            vCamera.y-=(float)(100/fps);
         }
         if(key[KEY_LEFT])
         {
-            vCamera.x+=100/fps;
+            vCamera.x-=(float)(100/fps);
         }
         if(key[KEY_RIGHT])
         {
-            vCamera.x-=100/fps;
+            vCamera.x+=(float)(100/fps);
         }
         matRotZ= Matrix_MakeRotationZ(fTheta);
         matRotX= Matrix_MakeRotationX(fPhi);
@@ -921,13 +921,13 @@ int main() {
                      (int)maille->data.color);*/
 
 
-            circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
+            /*circlefill(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,2, makecol(255,255,255));
             circlefill(buffer,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y,2, makecol(255,255,255));
             circlefill(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,2, makecol(255,255,255));
 
             line(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));
             line(buffer,(int)triangleToRaster[j].p[0].x,(int)triangleToRaster[j].p[0].y,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y, makecol(255,0,0));
-            line(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));
+            line(buffer,(int)triangleToRaster[j].p[2].x,(int)triangleToRaster[j].p[2].y,(int)triangleToRaster[j].p[1].x,(int)triangleToRaster[j].p[1].y, makecol(255,0,0));*/
         }
         /*for(int j=0;j<nbTriangle;j++)
         {
