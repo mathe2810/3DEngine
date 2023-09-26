@@ -54,7 +54,7 @@ t_file *creation()
     return ToReturn;
 }
 
-void enfiler(t_file *file, t_triangle nvTriangle)
+/*void enfiler(t_file *file, t_triangle nvTriangle)
 {
     t_maille *nouveau = malloc(sizeof(*nouveau));
     if (file == NULL || nouveau == NULL)
@@ -65,9 +65,9 @@ void enfiler(t_file *file, t_triangle nvTriangle)
     nouveau->data = nvTriangle;
     nouveau->next = NULL;
 
-    if (file->premier != NULL) /* La file n'est pas vide */
+    if (file->premier != NULL) *//* La file n'est pas vide *//*
     {
-        /* On se positionne à la fin de la file */
+        *//* On se positionne à la fin de la file *//*
         t_maille *elementActuel = file->premier;
         while (elementActuel->next != NULL)
         {
@@ -75,7 +75,7 @@ void enfiler(t_file *file, t_triangle nvTriangle)
         }
         elementActuel->next = nouveau;
     }
-    else /* La file est vide, notre élément est le premier */
+    else *//* La file est vide, notre élément est le premier *//*
     {
         file->premier = nouveau;
     }
@@ -88,14 +88,14 @@ void defiler(t_file *file)
         exit(EXIT_FAILURE);
     }
 
-    /* On vérifie s'il y a quelque chose à défiler */
+    *//* On vérifie s'il y a quelque chose à défiler *//*
     if (file->premier != NULL)
     {
         t_maille *elementDefile = file->premier;
         file->premier = elementDefile->next;
         free(elementDefile);
     }
-}
+}*/
 
 void afficherFile(t_file *file)
 {
@@ -177,7 +177,7 @@ v.w = i->x * m->m[0][3] + i->y * m->m[1][3] + i->z * m->m[2][3] + i->w * m->m[3]
 return v;
 }
 
-
+/*
 void MultiplyMatrixVector(vec3d *i, vec3d *o, mat4x4 m)
 {
     o->x = i->x * m.m[0][0] + i->y * m.m[1][0] + i->z * m.m[2][0] + m.m[3][0];
@@ -189,7 +189,7 @@ void MultiplyMatrixVector(vec3d *i, vec3d *o, mat4x4 m)
     {
         o->x /= w; o->y /= w; o->z /= w;
     }
-}
+}*/
 
 mat4x4 Matrix_MakeIdentity()
 {
@@ -343,7 +343,8 @@ return v;
 // Return signed shortest distance from point to plane, plane normal must be normalised
 float dist(vec3d *p,vec3d *plane_n,vec3d *plane_p)
 {
-vec3d n = Vector_Normalise(p);
+    vec3d n=initVector();
+    n = Vector_Normalise(p);
 return (plane_n->x * p->x + plane_n->y * p->y + plane_n->z * p->z - Vector_DotProduct(plane_n, plane_p));
 }
 
@@ -472,12 +473,15 @@ mat4x4 Matrix_PointAt(vec3d *pos, vec3d *target, vec3d *up)
     newForward = Vector_Normalise(&newForward);
 
 // Calculate new Up direction
-    vec3d a = Vector_Mul(&newForward, Vector_DotProduct(up, &newForward));
-    vec3d newUp = Vector_Sub(up, &a);
+    vec3d a=initVector();
+    a = Vector_Mul(&newForward, Vector_DotProduct(up, &newForward));
+    vec3d newUp=initVector();
+    newUp = Vector_Sub(up, &a);
     newUp = Vector_Normalise(&newUp);
 
 // New Right direction is easy, its just cross product
-    vec3d newRight = Vector_CrossProduct(&newUp, &newForward);
+    vec3d newRight=initVector();
+    newRight = Vector_CrossProduct(&newUp, &newForward);
 
 // Construct Dimensioning and Translation Matrix
     mat4x4 matrix={0};
@@ -587,7 +591,20 @@ int main() {
     rewind(pf);
 
     vec3d *verts=malloc(sizeof (vec3d)*nbVertices);
+    for(int i=0;i<nbVertices;i++)
+    {
+        verts[i]=initVector();
+    }
     t_triangle *tris=malloc(sizeof (t_triangle)*nbTriangle);
+    for(int i=0;i<nbTriangle;i++)
+    {
+        for(int j=0;j<3;j++)
+        {
+            tris[i].p[j]=initVector();
+        }
+        tris[i].color=0;
+        tris[i].ApproxZ=0;
+    }
     int **tab=malloc(sizeof (int*)*nbTriangle);
 
     for(int i=0; i<nbTriangle;i++)
@@ -639,13 +656,22 @@ int main() {
 
     t_triangle *triangleToRaster= malloc(sizeof (t_triangle)*nbTriangle*3);
 
+    for(int i=0;i<nbTriangle;i++)
+    {
+        for(int j=0;j<3;j++)
+        {
+            triangleToRaster[i].p[j]=initVector();
+        }
+        triangleToRaster[i].color=0;
+        triangleToRaster[i].ApproxZ=0;
+    }
 
     float fTheta=M_PI,fPhi=0,fAngleRad=0;
     float dx=0,dy=0,dz=100;
     float fFov = 90.0f;
     float fYaw=0;
     int compteurTriangle=0;
-    t_file *file=creation();
+   /* t_file *file=creation();*/
 
     mat4x4 matProj={0},matRotZ={0},matRotX={0},matRotY={0},matTrans={0},matWorld={0},matRotated={0};
     t_triangle triProjected, triTransformed,triViewed;
@@ -656,7 +682,6 @@ int main() {
 
     matProj= Matrix_MakeProjection(90,(float)SCREEN_H / (float)SCREEN_W,0.1f,1000.0f);
 
-    float *tabApprox= malloc(sizeof (float)*nbTriangle);
 
 
     while(!key[KEY_ESC])
@@ -902,8 +927,6 @@ int main() {
         qsort(triangleToRaster, nbTriangle, sizeof(t_triangle), comparer);
 
        /* qsort(file,nbTriangle,sizeof(t_file),comparer);*/
-
-        t_maille *maille=file->premier;
 
         for(int j=0;j<nbTriangle;j++)/*
         for(maille;maille!=NULL;maille=maille->next)*/
